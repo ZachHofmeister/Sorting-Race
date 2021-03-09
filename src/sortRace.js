@@ -6,7 +6,7 @@
 //File Name: sortRace.js
 //File Description: The source code and algorithms of the sortRace program.
 
-var g_canvas = { cell_size:10, wid:70, hgt:64 }; // JS Global var, w canvas size info.
+var g_canvas = { cell_size:14, wid:70, hgt:48 }; // JS Global var, w canvas size info.
 var g_frame_cnt = 0; // Setup a P5 display-frame counter, to do anim
 var g_frame_mod = 1; // Update every 'mod' frames.
 var g_stop = 0; // Go by default.
@@ -83,8 +83,7 @@ function drawCell(x, y, color) {
 	rect(rectX, rectY, sz, sz);
 }
 
-// function keyPressed() {
-// 	// console.log(`keyPressed: ${keyCode}`);
-//     if (keyCode == 32) g_stop = !g_stop; //Spacebar pause
-// 	if (key = 'a') g_showAnt = !g_showAnt; //a key show/hide ant positon
-// }
+function keyPressed() {
+	// console.log(`keyPressed: ${keyCode}`);
+    if (keyCode == 32) g_stop = !g_stop; //Spacebar pause
+}
