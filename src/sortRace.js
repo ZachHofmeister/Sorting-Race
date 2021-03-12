@@ -6,16 +6,17 @@
 //File Name: sortRace.js
 //File Description: The source code and algorithms of the sortRace program.
 
-var g_canvas = { cell_size:14, wid:70, hgt:48 }; // JS Global var, w canvas size info.
+var g_canvas = { cell_size:14, wid:74, hgt:48 }; // JS Global var, w canvas size info.
 var g_frame_cnt = 0; // Setup a P5 display-frame counter, to do anim
 var g_frame_mod = 3; // Update every 'mod' frames.
 var g_stop = 0; // Go by default.
 
-var g_algoSS = {col:0, passNum:0, color:"red", string:"0123456789ABCDEF"}
-var g_algoGP = {col:18, passNum:0, color:"yellow", string:"0123456789ABCDEF"}
-var g_algoMS = {col:36, passNum:0, color:"green", string:"0123456789ABCDEF"}
-var g_algoQS = {col:54, passNum:0, color:"blue", string:"0123456789ABCDEF"}
+var g_algoSS = {col:2, passNum:0, color:"red", string:"1FAB3D47905FC286", unsortedIndex:0}
+var g_algoGP = {col:20, passNum:0, color:"yellow", string:"0123456789ABCDEF"}
+var g_algoMS = {col:38, passNum:0, color:"green", string:"0123456789ABCDEF"}
+var g_algoQS = {col:56, passNum:0, color:"blue", string:"0123456789ABCDEF"}
 
+var inputs = ["05CA62A7BC2B6F03","065DE66B71F040BA","0684FB89C3D5754E","07C9A2D18D3E4B65","09F48E7862ED2616","1FAB3D47905FC286","286E1AD0342D7859","30E530BC4786AF21","328DE47C65C10BA9","34F2756FD18E90BA","90BA34F07E56F180","D7859286E2FD0342"];
 var width;
 var height;
 
@@ -25,6 +26,12 @@ function setup() { // P5 Setup Fcn
     height = sz * g_canvas.hgt;
     createCanvas( width, height );  // Make a P5 canvas.
 	background("#000"); // set canvas to black
+	textSize(sz);
+	fill("#FFF");
+	text("Selection Sort", g_canvas.cell_size * g_algoSS.col, 20);
+	text("Gold's Pore Sort", g_canvas.cell_size * g_algoGP.col, 20);
+	text("Mergesort", g_canvas.cell_size * g_algoMS.col, 20);
+	text("Quicksort", g_canvas.cell_size * g_algoQS.col, 20);
 }
 
 function draw() { // P5 Frame Re-draw Fcn, Called for Every Frame.	
@@ -41,7 +48,7 @@ function draw() { // P5 Frame Re-draw Fcn, Called for Every Frame.
 function pass() {
 	//Selection Sort
 	drawString(g_algoSS);
-	g_algoSS.string = selecSortOnce(g_algoSS.string);
+	selecSortOnce(g_algoSS);
 	++g_algoSS.passNum;
 	//Gold's Pore Sort
 	drawString(g_algoGP);
@@ -57,10 +64,30 @@ function pass() {
 	++g_algoQS.passNum;
 }
 
-function selecSortOnce(str) { //One pass for the selection sort algorithm
-	return "0123456789ABCDEF"; //return the outcome from the pass
+function selecSortOnce(ssObject) { //One pass for the selection sort algorithm
+	//Find minimum
+	
+	var min = ssObject.unsortedIndex;
+	for(var j = min+1; j < 16; j++){
+		console.log(ssObject.string[j], ssObject.string[min], parseInt(ssObject.string[j], 16) < parseInt(ssObject.string[min], 16));
+		if(parseInt(ssObject.string[j], 16) < parseInt(ssObject.string[min], 16)){
+			min = j;
+		}
+	}
+
+	//Swap minimum element with the first element
+	// console.log(ssObject.string[min], ssObject.string[ssObject.unsortedIndex]);
+	var temp = ssObject.string[min]; //For first pass: temp = 0
+	ssObject.string = replaceChar(ssObject.string, min, ssObject.string[ssObject.unsortedIndex]); //at 0's spot, put the 1
+	ssObject.string = replaceChar(ssObject.string, ssObject.unsortedIndex, temp); //at 1's spot (the front), put the 0
+	++ssObject.unsortedIndex;
+	console.log("After: " + ssObject.string);
 
 	// Note: parseInt(char, 16) can be used to get the numerical value of a hex character '1'-'F' => 0-15
+}
+
+function replaceChar(str, index, char) {
+	return str.substr(0,index) + char + str.substr(index+1);
 }
 
 function goldsPoreOnce(str) { //One pass for the gold's pore sorting algorithm
@@ -77,25 +104,28 @@ function quickSortOnce(str) { //One pass for the quick sort algorithm
 
 function drawString(algoObject) {
 	var currentColor = color(random(0, 255), random(0,255), random(0,255));
-	// var currentColor = "white";
+	// Uncomment the following to display pass number
+	// let x = algoObject.col - 1.5;
+	// let y = (algoObject.passNum % (g_canvas.hgt - 2)) + 2; //0 - 62
+	// drawCell(x, y, "#000", algoObject.passNum, "#fff");
 	for (var i = 0; i < 16; ++i) {
 		let x = algoObject.col + i;
 		let y = (algoObject.passNum % (g_canvas.hgt - 2)) + 2; //0 - 62
 		// console.log("SS: " + x + " " + y);
-		drawCell(x, y, currentColor, algoObject.string[i]);
+		drawCell(x, y, currentColor, algoObject.string[i], "#000");
 	}
 }
 
-function drawCell(x, y, color, char) {
+function drawCell(x, y, cellColor, char, charColor) {
 	let sz = g_canvas.cell_size;
     let rectX = 1+ x*sz; // Set x one pixel inside the sz-by-sz cell.
     let rectY = 1+ y*sz;
 
-	fill(color);
+	fill(cellColor);
 	rect(rectX, rectY, sz, sz);
-	textSize(sz);
+	
 	textAlign(CENTER, CENTER);
-	fill("#000");
+	fill(charColor);
 	text(char, rectX + (sz / 2), rectY + (sz / 2) + 2);
 }
 
