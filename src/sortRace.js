@@ -11,10 +11,10 @@ var g_frame_cnt = 0; // Setup a P5 display-frame counter, to do anim
 var g_frame_mod = 3; // Update every 'mod' frames.
 var g_stop = 0; // Go by default.
 
-var g_algoSS = {col:2, passNum:0, color:"red", string:"1FAB3D47905FC286", unsortedIndex:0}
-var g_algoGP = {col:20, passNum:0, color:"yellow", string:"0123456789ABCDEF"}
-var g_algoMS = {col:38, passNum:0, color:"green", string:"0123456789ABCDEF"}
-var g_algoQS = {col:56, passNum:0, color:"blue", string:"0123456789ABCDEF"}
+var g_algoSS = {col:2, passNum:0, color:"red", str:"1FAB3D47905FC286", unsortedIndex:0}
+var g_algoGP = {col:20, passNum:0, color:"yellow", str:"0123456789ABCDEF"}
+var g_algoMS = {col:38, passNum:0, color:"green", str:"0123456789ABCDEF"}
+var g_algoQS = {col:56, passNum:0, color:"blue", str:"0123456789ABCDEF", left:0, right:15}
 
 var inputs = ["05CA62A7BC2B6F03","065DE66B71F040BA","0684FB89C3D5754E","07C9A2D18D3E4B65","09F48E7862ED2616","1FAB3D47905FC286","286E1AD0342D7859","30E530BC4786AF21","328DE47C65C10BA9","34F2756FD18E90BA","90BA34F07E56F180","D7859286E2FD0342"];
 var width;
@@ -47,63 +47,83 @@ function draw() { // P5 Frame Re-draw Fcn, Called for Every Frame.
 
 function pass() {
 	//Selection Sort
-	drawString(g_algoSS);
 	selecSortOnce(g_algoSS);
+	drawString(g_algoSS);
 	++g_algoSS.passNum;
 	//Gold's Pore Sort
+	goldsPoreOnce(g_algoGP);
 	drawString(g_algoGP);
-	g_algoGP.string = goldsPoreOnce(g_algoGP.string);
 	++g_algoGP.passNum;
 	//Merge Sort
+	mergeSortOnce(g_algoMS);
 	drawString(g_algoMS);
-	g_algoMS.string = mergeSortOnce(g_algoMS.string);
 	++g_algoMS.passNum;
 	//Quick Sort
+	quickSortOnce(g_algoQS);
 	drawString(g_algoQS);
-	g_algoQS.string = quickSortOnce(g_algoQS.string);
 	++g_algoQS.passNum;
 }
 
 function selecSortOnce(ssObject) { //One pass for the selection sort algorithm
 	//Find minimum
+	let sorted = isSorted(ssObject.str);
 	
-	var min = ssObject.unsortedIndex;
-	for(var j = min+1; j < 16; j++){
-		console.log(ssObject.string[j], ssObject.string[min], parseInt(ssObject.string[j], 16) < parseInt(ssObject.string[min], 16));
-		if(parseInt(ssObject.string[j], 16) < parseInt(ssObject.string[min], 16)){
-			min = j;
+	if (!sorted) {
+		var startingString = ssObject.str;
+		var min = ssObject.unsortedIndex;
+
+		for (var j = min+1; j < 16; ++j) {
+			// console.log(ssObject.str[j], ssObject.str[min], parseInt(ssObject.str[j], 16) < parseInt(ssObject.str[min], 16));
+			if (parseInt(ssObject.str[j], 16) < parseInt(ssObject.str[min], 16)) {
+				min = j;
+			}
 		}
+	
+		//Swap minimum element with the first element
+		var temp = ssObject.str[min]; //For first pass: temp = 0
+		ssObject.str = replaceChar(ssObject.str, min, ssObject.str[ssObject.unsortedIndex]); //at 0's spot, put the 1
+		ssObject.str = replaceChar(ssObject.str, ssObject.unsortedIndex, temp); //at 1's spot (the front), put the 0
+		++ssObject.unsortedIndex;
+	} else {
+		ssObject.color = "white";
 	}
 
-	//Swap minimum element with the first element
-	// console.log(ssObject.string[min], ssObject.string[ssObject.unsortedIndex]);
-	var temp = ssObject.string[min]; //For first pass: temp = 0
-	ssObject.string = replaceChar(ssObject.string, min, ssObject.string[ssObject.unsortedIndex]); //at 0's spot, put the 1
-	ssObject.string = replaceChar(ssObject.string, ssObject.unsortedIndex, temp); //at 1's spot (the front), put the 0
-	++ssObject.unsortedIndex;
-	console.log("After: " + ssObject.string);
+	return sorted;
+}
 
-	// Note: parseInt(char, 16) can be used to get the numerical value of a hex character '1'-'F' => 0-15
+function goldsPoreOnce(gpObject) { //One pass for the gold's pore sorting algorithm
+	return "0123456789ABCDEF";
+}
+
+function mergeSortOnce(msObject) { //One pass for the merge sort algorithm
+	return "0123456789ABCDEF";
+}
+
+function quickSortOnce(qsObject) { //One pass for the quick sort algorithm
+	qsObject.str
+	return "0123456789ABCDEF";
 }
 
 function replaceChar(str, index, char) {
 	return str.substr(0,index) + char + str.substr(index+1);
 }
 
-function goldsPoreOnce(str) { //One pass for the gold's pore sorting algorithm
-	return "0123456789ABCDEF";
+function isSorted(str) {
+	let sorted = true;
+	// console.log(str + " " + str.length);
+	for (let i = 0; i < str.length - 1; ++i) {
+		if (parseInt(str[i], 16) > parseInt(str[i+1], 16)) {
+			// console.log("index: " + i + "i: " + parseInt(str[i], 16) + "    i+1: " + parseInt(str[i+1], 16));
+			sorted = false;
+			break;
+		}
+	}
+	return sorted;
 }
 
-function mergeSortOnce(str) { //One pass for the merge sort algorithm
-	return "0123456789ABCDEF";
-}
-
-function quickSortOnce(str) { //One pass for the quick sort algorithm
-	return "0123456789ABCDEF";
-}
-
+// function quickSort(arr, left, right)
 function drawString(algoObject) {
-	var currentColor = color(random(0, 255), random(0,255), random(0,255));
+	// var currentColor = color(random(0, 255), random(0,255), random(0,255));
 	// Uncomment the following to display pass number
 	// let x = algoObject.col - 1.5;
 	// let y = (algoObject.passNum % (g_canvas.hgt - 2)) + 2; //0 - 62
@@ -112,7 +132,7 @@ function drawString(algoObject) {
 		let x = algoObject.col + i;
 		let y = (algoObject.passNum % (g_canvas.hgt - 2)) + 2; //0 - 62
 		// console.log("SS: " + x + " " + y);
-		drawCell(x, y, currentColor, algoObject.string[i], "#000");
+		drawCell(x, y, algoObject.color, algoObject.str[i], "#000");
 	}
 }
 
