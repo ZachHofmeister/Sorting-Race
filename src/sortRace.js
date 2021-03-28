@@ -12,8 +12,8 @@ var g_frame_mod = 3; // Update every 'mod' frames.
 var g_stop = 0; // Go by default.
 
 var g_algoSS = {col:2, passNum:0, color:"red", str:"1FAB3D47905FC286", unsortedIndex:0}
-var g_algoGP = {col:20, passNum:0, color:"yellow", str:"0123456789ABCDEF"}
-var g_algoMS = {col:38, passNum:0, color:"green", str:"0123456789ABCDEF"}
+var g_algoGP = {col:20, passNum:0, color:"yellow", str:"1FAB3D47905FC286"}
+var g_algoMS = {col:38, passNum:0, color:"green", str:"1FAB3D47905FC286"}
 var g_algoQS = {col:56, passNum:0, color:"blue", str:"1FAB3D47905FC286", pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
 
 var inputs = ["05CA62A7BC2B6F03","065DE66B71F040BA","0684FB89C3D5754E","07C9A2D18D3E4B65","09F48E7862ED2616","1FAB3D47905FC286","286E1AD0342D7859","30E530BC4786AF21","328DE47C65C10BA9","34F2756FD18E90BA","90BA34F07E56F180","D7859286E2FD0342"];
@@ -41,11 +41,11 @@ function draw() { // P5 Frame Re-draw Fcn, Called for Every Frame.
 	// // console.log(` #${g_frame_cnt} {p=${g_bot.x},${g_bot.y} d=${g_bot.dir} m=${g_bot.mode} i=${g_bot.counter}}; {c=${tempState[0]} t=${tempState[1]}}`);
 
     if (0 == g_frame_cnt % g_frame_mod) {
-        if (!g_stop) pass();
+        if (!g_stop) raceManager();
     }
 }
 
-function pass() {
+function raceManager() {
 	//Selection Sort
 	selecSortOnce(g_algoSS);
 	drawString(g_algoSS);
@@ -65,38 +65,35 @@ function pass() {
 }
 
 function selecSortOnce(ssObject) { //One pass for the selection sort algorithm
-	//Find minimum
 	let sorted = isSorted(ssObject.str);
 	
 	if (!sorted) {
-		var startingString = ssObject.str;
-		var min = ssObject.unsortedIndex;
+		var min = ssObject.unsortedIndex; //min: index of the minimum unsorted element
 
-		for (var j = min+1; j < 16; ++j) {
+		//find the minimum in the unsorted area
+		for (let i = min+1; i < 16; ++i) {
 			// console.log(ssObject.str[j], ssObject.str[min], parseInt(ssObject.str[j], 16) < parseInt(ssObject.str[min], 16));
-			if (parseInt(ssObject.str[j], 16) < parseInt(ssObject.str[min], 16)) {
-				min = j;
+			if (parseInt(ssObject.str[i], 16) < parseInt(ssObject.str[min], 16)) {
+				min = i;
 			}
 		}
 	
-		//Swap minimum element with the first element
-		var temp = ssObject.str[min]; //For first pass: temp = 0
-		ssObject.str = replaceChar(ssObject.str, min, ssObject.str[ssObject.unsortedIndex]); //at 0's spot, put the 1
-		ssObject.str = replaceChar(ssObject.str, ssObject.unsortedIndex, temp); //at 1's spot (the front), put the 0
-		++ssObject.unsortedIndex;
+		
+		swap(ssObject, min, ssObject.unsortedIndex); //Swap minimum element with the first unsorted element
+		++ssObject.unsortedIndex; //Increment the index of first unsorted element. 
 	} else {
-		ssObject.color = "white";
+		ssObject.color = "white"; //temporary, white for sorted
 	}
 
 	return sorted;
 }
 
 function goldsPoreOnce(gpObject) { //One pass for the gold's pore sorting algorithm
-	return "0123456789ABCDEF";
+	
 }
 
 function mergeSortOnce(msObject) { //One pass for the merge sort algorithm
-	return "0123456789ABCDEF";
+	
 }
 
 function quickSortOnce(qsObject) { //One pass for the quick sort algorithm
@@ -159,12 +156,10 @@ function swap(obj, i, j) {
 	obj.str = replaceChar(obj.str, j, oi);
 }
 
-function isSorted(str) {
+function isSorted(str) { //Takes a string of hexidecimal characters and returns true if it is in sorted order (L to G)
 	let sorted = true;
-	// console.log(str + " " + str.length);
 	for (let i = 0; i < str.length - 1; ++i) {
 		if (parseInt(str[i], 16) > parseInt(str[i+1], 16)) {
-			// console.log("index: " + i + "i: " + parseInt(str[i], 16) + "    i+1: " + parseInt(str[i+1], 16));
 			sorted = false;
 			break;
 		}
@@ -172,7 +167,6 @@ function isSorted(str) {
 	return sorted;
 }
 
-// function quickSort(arr, left, right)
 function drawString(algoObject) {
 	// var currentColor = color(random(0, 255), random(0,255), random(0,255));
 	// Uncomment the following to display pass number
