@@ -101,7 +101,9 @@ function mergeSortOnce(msObject) { //One pass for the merge sort algorithm
 
 function quickSortOnce(qsObject) { //One pass for the quick sort algorithm
 	if (qsObject.end >= 2 && !isSorted(qsObject.str)) {
+		// Start after pivot, move onwards until (relative) end reached.
 		for (var i = qsObject.pivot + 1; i <= qsObject.end; i++) {
+			// If current value is <= pivot value, then swap it with the store index value and increment store index.
 			if (qsObject.str[i] <= qsObject.str[qsObject.pivot]) {
 				swap(qsObject, i, qsObject.sIndex);
 				qsObject.sIndex++;
