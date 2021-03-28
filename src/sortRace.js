@@ -14,7 +14,7 @@ var g_stop = 0; // Go by default.
 var g_algoSS = {col:2, passNum:0, color:"red", str:"1FAB3D47905FC286", unsortedIndex:0}
 var g_algoGP = {col:20, passNum:0, color:"yellow", str:"0123456789ABCDEF"}
 var g_algoMS = {col:38, passNum:0, color:"green", str:"0123456789ABCDEF"}
-var g_algoQS = {col:56, passNum:0, color:"blue", str:"0123456789ABCDEF", left:0, right:15}
+var g_algoQS = {col:56, passNum:0, color:"blue", str:"1FAB3D47905FC286", pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
 
 var inputs = ["05CA62A7BC2B6F03","065DE66B71F040BA","0684FB89C3D5754E","07C9A2D18D3E4B65","09F48E7862ED2616","1FAB3D47905FC286","286E1AD0342D7859","30E530BC4786AF21","328DE47C65C10BA9","34F2756FD18E90BA","90BA34F07E56F180","D7859286E2FD0342"];
 var width;
@@ -100,12 +100,61 @@ function mergeSortOnce(msObject) { //One pass for the merge sort algorithm
 }
 
 function quickSortOnce(qsObject) { //One pass for the quick sort algorithm
-	qsObject.str
-	return "0123456789ABCDEF";
+	if (qsObject.end >= 2 && !isSorted(qsObject.str)) {
+		for (var i = qsObject.pivot + 1; i <= qsObject.end; i++) {
+			if (qsObject.str[i] <= qsObject.str[qsObject.pivot]) {
+				swap(qsObject, i, qsObject.sIndex);
+				qsObject.sIndex++;
+			}
+		}
+		// Since store index started with 1, we need to subtract 1 (in case it's out-of-bounds).
+		swap(qsObject, qsObject.pivot, qsObject.sIndex - 1);
+		
+		// Need to set pivot to new position before proceeding, prior to divide-and-conquer.
+		qsObject.pivot = qsObject.sIndex - 1;
+		
+		// Get furthest left side of 1st partition (left of pivot).
+		var p1Left = (qsObject.pIndex == -1) ? qsObject.pivot : qsObject.partitions[qsObject.pIndex].start;
+		// Get furthest right side of 2nd partition (right of pivot).
+		var p2Right = (qsObject.pIndex == -1) ? qsObject.end : qsObject.partitions[qsObject.pIndex].end;
+		
+		if (p1Left <= qsObject.pivot - 1) {
+			// Create partition to left of pivot.
+			qsObject.partitions.push({
+				start: p1Left, end: qsObject.pivot - 1
+			});
+		}
+		
+		if (p2Right >= qsObject.pivot + 1) {
+			// Create partition to right of pivot.
+			qsObject.partitions.push({
+				start: qsObject.pivot + 1, end: p2Right
+			});
+		}
+
+		// Increment partition index so that we can work on a partition that hasn't been processed yet.
+		qsObject.pIndex++;
+		
+		// If the partition index < length of partitions array, then we still need to go through unprocessed partitions.
+		if (qsObject.pIndex < qsObject.partitions.length) {		
+			qsObject.pivot = qsObject.partitions[qsObject.pIndex].start; // Pivot is always at very left side (start) of partition/main array.
+			qsObject.end = qsObject.partitions[qsObject.pIndex].end; // Self-explanatory.
+			qsObject.sIndex = qsObject.pivot + 1; // Store index is the value after the pivot.
+		}
+	}
+	else {
+		qsObject.color = "white";
+	}
 }
 
 function replaceChar(str, index, char) {
 	return str.substr(0,index) + char + str.substr(index+1);
+}
+
+function swap(obj, i, j) {
+	var oi = obj.str[i];
+	obj.str = replaceChar(obj.str, i, obj.str[j]);
+	obj.str = replaceChar(obj.str, j, oi);
 }
 
 function isSorted(str) {
