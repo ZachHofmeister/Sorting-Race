@@ -12,7 +12,7 @@ var g_frame_mod = 3; // Update every 'mod' frames.
 var g_stop = 0; // Go by default.
 
 var g_algoSS = {col:2, passNum:0, color:"red", str:"1FAB3D47905FC286", unsortedIndex:0}
-var g_algoGP = {col:20, passNum:0, color:"yellow", str:"A065DE6671F040B", parity:0}
+var g_algoGP = {col:20, passNum:0, color:"yellow", str:"1FAB3D47905FC286", parity:0}
 var g_algoMS = {col:38, passNum:0, color:"green", str:"1FAB3D47905FC286"}
 var g_algoQS = {col:56, passNum:0, color:"blue", str:"1FAB3D47905FC286", pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
 
