@@ -12,7 +12,7 @@ var g_frame_mod = 3; // Update every 'mod' frames.
 var g_stop = 0; // Go by default.
 
 var g_algoSS = {col:2, passNum:0, color:"red", str:"1FAB3D47905FC286", unsortedIndex:0}
-var g_algoGP = {col:20, passNum:0, color:"yellow", str:"1FAB3D47905FC286"}
+var g_algoGP = {col:20, passNum:0, color:"yellow", str:"A065DE6671F040B", parity:0}
 var g_algoMS = {col:38, passNum:0, color:"green", str:"1FAB3D47905FC286"}
 var g_algoQS = {col:56, passNum:0, color:"blue", str:"1FAB3D47905FC286", pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
 
@@ -89,7 +89,20 @@ function selecSortOnce(ssObject) { //One pass for the selection sort algorithm
 }
 
 function goldsPoreOnce(gpObject) { //One pass for the gold's pore sorting algorithm
-	
+	if (!isSorted(gpObject.str)) {
+		for (var i = gpObject.parity; i < gpObject.str.length; i += 2) {
+			if (i + 2 > gpObject.str.length) continue;
+			if (gpObject.str[i] > gpObject.str[i + 1]) {
+				swap(gpObject, i, i + 1);
+			}
+		}
+		
+		// Set the next half-pass to be even (0) or odd (1).
+		gpObject.parity = (gpObject.parity + 1) % 2;
+	}
+	else {
+		gpObject.color = "white";
+	}
 }
 
 function mergeSortOnce(msObject) { //One pass for the merge sort algorithm
