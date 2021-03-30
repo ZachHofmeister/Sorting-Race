@@ -11,57 +11,95 @@ var g_frame_cnt = 0; // Setup a P5 display-frame counter, to do anim
 var g_frame_mod = 3; // Update every 'mod' frames.
 var g_stop = 0; // Go by default.
 
-var g_algoSS = {col:2, passNum:0, color:"red", str:"1FAB3D47905FC286", unsortedIndex:0}
-var g_algoGP = {col:20, passNum:0, color:"yellow", str:"1FAB3D47905FC286", parity:0}
-var g_algoMS = {col:38, passNum:0, color:"green", str:"1FAB3D47905FC286"}
-var g_algoQS = {col:56, passNum:0, color:"blue", str:"1FAB3D47905FC286", pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
-
 var inputs = ["05CA62A7BC2B6F03","065DE66B71F040BA","0684FB89C3D5754E","07C9A2D18D3E4B65","09F48E7862ED2616","1FAB3D47905FC286","286E1AD0342D7859","30E530BC4786AF21","328DE47C65C10BA9","34F2756FD18E90BA","90BA34F07E56F180","D7859286E2FD0342"];
+var g_raceObj = {nextIndex:0, currentStr:"", racing:false}
+
+var g_algoSS = {col:2, lineNum:0, color:"red", currentRot:"", str:"", sorted:false, finished:false, unsortedIndex:0}
+var g_algoGP = {col:20, lineNum:0, color:"yellow", currentRot:"", str:"", sorted:false, finished:false, parity:0}
+var g_algoMS = {col:38, lineNum:0, color:"green", currentRot:"", str:"", sorted:false, finished:false}
+var g_algoQS = {col:56, lineNum:0, color:"blue", currentRot:"", str:"", sorted:false, finished:false, pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
+
 var width;
 var height;
 
-function setup() { // P5 Setup Fcn
-    var sz = g_canvas.cell_size;
+function setup() { // P5 setup function
+    let sz = g_canvas.cell_size;
     width = sz * g_canvas.wid;  // Our 'canvas' uses cells of given size, not 1x1 pixels.
     height = sz * g_canvas.hgt;
-    createCanvas( width, height );  // Make a P5 canvas.
-	background("#000"); // set canvas to black
-	textSize(sz);
-	fill("#FFF");
-	text("Selection Sort", g_canvas.cell_size * g_algoSS.col, 20);
-	text("Gold's Pore Sort", g_canvas.cell_size * g_algoGP.col, 20);
-	text("Mergesort", g_canvas.cell_size * g_algoMS.col, 20);
-	text("Quicksort", g_canvas.cell_size * g_algoQS.col, 20);
+    createCanvas(width, height);  // Make a P5 canvas.
+	startRace();
 }
 
-function draw() { // P5 Frame Re-draw Fcn, Called for Every Frame.	
+function draw() { // P5 frame re-draw function, called for every frame.	
     ++g_frame_cnt;
 	// //The following two lines give output similar to the first 30 moves example txt. MAKE SURE iterations and g_frame_mod both = 1
 	// // let tempState = get_state(g_bot.x, g_bot.y);
 	// // console.log(` #${g_frame_cnt} {p=${g_bot.x},${g_bot.y} d=${g_bot.dir} m=${g_bot.mode} i=${g_bot.counter}}; {c=${tempState[0]} t=${tempState[1]}}`);
 
     if (0 == g_frame_cnt % g_frame_mod) {
-        if (!g_stop) raceManager();
+        if (!g_stop && g_raceObj.racing) raceManager();
     }
+}
+
+function startRace() {
+	//Reset display
+	background("#000"); // set canvas to black
+	let sz = g_canvas.cell_size;
+	textSize(sz);
+	fill("#FFF");
+	text("Selection Sort", g_canvas.cell_size * g_algoSS.col, 20);
+	text("Gold's Pore Sort", g_canvas.cell_size * g_algoGP.col, 20);
+	text("Mergesort", g_canvas.cell_size * g_algoMS.col, 20);
+	text("Quicksort", g_canvas.cell_size * g_algoQS.col, 20);
+	//Update raceObj
+	g_raceObj.currentStr = inputs[g_raceObj.nextIndex];
+	g_raceObj.nextIndex = (g_raceObj.nextIndex + 1) % inputs.length;
+	g_raceObj.racing = true;
+	//Reset algo objects
+	g_algoSS.lineNum = 0;
+	g_algoSS.color = "red";
+	g_algoSS.currentRot = g_algoSS.str = g_raceObj.currentStr;
+	g_algoSS.sorted = g_algoSS.finished = false;
+	g_algoSS.unsortedIndex = 0;
+
+	g_algoGP.lineNum = 0;
+	g_algoGP.color = "yellow";
+	g_algoGP.currentRot = g_algoGP.str = g_raceObj.currentStr;
+	g_algoGP.sorted = g_algoSS.finished = false;
+	g_algoGP.parity = 0;
+
+	g_algoMS.lineNum = 0;
+	g_algoMS.color = "green";
+	g_algoMS.currentRot = g_algoMS.str = g_raceObj.currentStr;
+	g_algoMS.sorted = g_algoSS.finished = false;
+
+	g_algoQS.lineNum = 0;
+	g_algoQS.color = "blue";
+	g_algoQS.currentRot = g_algoQS.str = g_raceObj.currentStr;
+	g_algoQS.sorted = g_algoSS.finished = false;
+	g_algoQS.pivot = 0;
+	g_algoQS.end = 15;
+	g_algoQS.sIndex = 1;
+	g_algoQS.pIndex = -1;
+	g_algoQS.partitions = [];
 }
 
 function raceManager() {
 	//Selection Sort
+	// if (g_algoSS.currentRot.equals(g_algoSS.str)) { //Start of current lap
+
+	// }
 	selecSortOnce(g_algoSS);
 	drawString(g_algoSS);
-	++g_algoSS.passNum;
 	//Gold's Pore Sort
 	goldsPoreOnce(g_algoGP);
 	drawString(g_algoGP);
-	++g_algoGP.passNum;
 	//Merge Sort
 	mergeSortOnce(g_algoMS);
 	drawString(g_algoMS);
-	++g_algoMS.passNum;
 	//Quick Sort
 	quickSortOnce(g_algoQS);
 	drawString(g_algoQS);
-	++g_algoQS.passNum;
 }
 
 function selecSortOnce(ssObject) { //One pass for the selection sort algorithm
@@ -184,14 +222,15 @@ function drawString(algoObject) {
 	// var currentColor = color(random(0, 255), random(0,255), random(0,255));
 	// Uncomment the following to display pass number
 	// let x = algoObject.col - 1.5;
-	// let y = (algoObject.passNum % (g_canvas.hgt - 2)) + 2; //0 - 62
-	// drawCell(x, y, "#000", algoObject.passNum, "#fff");
+	// let y = (algoObject.lineNum % (g_canvas.hgt - 2)) + 2; //0 - 62
+	// drawCell(x, y, "#000", algoObject.lineNum, "#fff");
 	for (var i = 0; i < 16; ++i) {
 		let x = algoObject.col + i;
-		let y = (algoObject.passNum % (g_canvas.hgt - 2)) + 2; //0 - 62
+		let y = (algoObject.lineNum % (g_canvas.hgt - 2)) + 2; //0 - 62
 		// console.log("SS: " + x + " " + y);
 		drawCell(x, y, algoObject.color, algoObject.str[i], "#000");
 	}
+	++algoObject.lineNum;
 }
 
 function drawCell(x, y, cellColor, char, charColor) {
