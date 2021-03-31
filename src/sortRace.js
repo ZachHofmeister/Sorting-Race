@@ -8,16 +8,18 @@
 
 var g_canvas = { cell_size:14, wid:74, hgt:48 }; // JS Global var, w canvas size info.
 var g_frame_cnt = 0; // Setup a P5 display-frame counter, to do anim
-var g_frame_mod = 3; // Update every 'mod' frames.
+var g_frame_mod = 1; // Update every 'mod' frames.
 var g_stop = 0; // Go by default.
 
 var inputs = ["05CA62A7BC2B6F03","065DE66B71F040BA","0684FB89C3D5754E","07C9A2D18D3E4B65","09F48E7862ED2616","1FAB3D47905FC286","286E1AD0342D7859","30E530BC4786AF21","328DE47C65C10BA9","34F2756FD18E90BA","90BA34F07E56F180","D7859286E2FD0342"];
 var g_raceObj = {nextIndex:0, currentStr:"", racing:false}
 
-var g_algoSS = {col:2, lineNum:0, color:"red", currentRot:"", str:"", sorted:false, finished:false, unsortedIndex:0}
-var g_algoGP = {col:20, lineNum:0, color:"yellow", currentRot:"", str:"", sorted:false, finished:false, parity:0}
-var g_algoMS = {col:38, lineNum:0, color:"green", currentRot:"", str:"", sorted:false, finished:false}
-var g_algoQS = {col:56, lineNum:0, color:"blue", currentRot:"", str:"", sorted:false, finished:false, pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
+var g_newStrColor = "white";
+
+var g_algoSS = {col:2, lineNum:0, color:"red", str:"", rotation:0, unsortedIndex:0}
+var g_algoGP = {col:20, lineNum:0, color:"yellow", str:"", rotation:0, parity:0}
+var g_algoMS = {col:38, lineNum:0, color:"green", str:"", rotation:0}
+var g_algoQS = {col:56, lineNum:0, color:"blue", str:"", rotation:0, pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
 
 var width;
 var height;
@@ -57,26 +59,22 @@ function startRace() {
 	g_raceObj.racing = true;
 	//Reset algo objects
 	g_algoSS.lineNum = 0;
-	g_algoSS.color = "red";
-	g_algoSS.currentRot = g_algoSS.str = g_raceObj.currentStr;
-	g_algoSS.sorted = g_algoSS.finished = false;
+	g_algoSS.str = g_raceObj.currentStr;
+	g_algoSS.rotation = 0;
 	g_algoSS.unsortedIndex = 0;
 
 	g_algoGP.lineNum = 0;
-	g_algoGP.color = "yellow";
-	g_algoGP.currentRot = g_algoGP.str = g_raceObj.currentStr;
-	g_algoGP.sorted = g_algoSS.finished = false;
+	g_algoGP.str = g_raceObj.currentStr;
+	g_algoGP.rotation = 0;
 	g_algoGP.parity = 0;
 
 	g_algoMS.lineNum = 0;
-	g_algoMS.color = "green";
-	g_algoMS.currentRot = g_algoMS.str = g_raceObj.currentStr;
-	g_algoMS.sorted = g_algoSS.finished = false;
+	g_algoMS.str = g_raceObj.currentStr;
+	g_algoMS.rotation = 0;
 
 	g_algoQS.lineNum = 0;
-	g_algoQS.color = "blue";
-	g_algoQS.currentRot = g_algoQS.str = g_raceObj.currentStr;
-	g_algoQS.sorted = g_algoSS.finished = false;
+	g_algoQS.str = g_raceObj.currentStr;
+	g_algoQS.rotation = 0;
 	g_algoQS.pivot = 0;
 	g_algoQS.end = 15;
 	g_algoQS.sIndex = 1;
@@ -86,11 +84,15 @@ function startRace() {
 
 function raceManager() {
 	//Selection Sort
-	// if (g_algoSS.currentRot.equals(g_algoSS.str)) { //Start of current lap
-
-	// }
-	selecSortOnce(g_algoSS);
-	drawString(g_algoSS);
+	console.log(g_algoSS.rotation);
+	if (sorted(g_algoSS.str)) { //End of the current lap
+		drawString(g_algoSS, color(random(0, 255), random(0,255), random(0,255)));
+		g_algoSS.str = rotateString(g_raceObj.currentStr, ++g_algoSS.rotation);
+		g_algoSS.unsortedIndex = 0;
+	} else if (g_algoSS.rotation < g_raceObj.currentStr.length) { //Not sorted, and race not ended
+		drawString(g_algoSS);
+		selecSortOnce(g_algoSS);
+	}
 	//Gold's Pore Sort
 	goldsPoreOnce(g_algoGP);
 	drawString(g_algoGP);
@@ -103,9 +105,7 @@ function raceManager() {
 }
 
 function selecSortOnce(ssObject) { //One pass for the selection sort algorithm
-	let sorted = isSorted(ssObject.str);
-	
-	if (!sorted) {
+	if (!sorted(ssObject.str)) {
 		var min = ssObject.unsortedIndex; //min: index of the minimum unsorted element
 
 		//find the minimum in the unsorted area
@@ -116,18 +116,15 @@ function selecSortOnce(ssObject) { //One pass for the selection sort algorithm
 			}
 		}
 	
-		
 		swap(ssObject, min, ssObject.unsortedIndex); //Swap minimum element with the first unsorted element
 		++ssObject.unsortedIndex; //Increment the index of first unsorted element. 
 	} else {
-		ssObject.color = "white"; //temporary, white for sorted
+		// ssObject.color = "white"; //temporary, white for sorted
 	}
-
-	return sorted;
 }
 
 function goldsPoreOnce(gpObject) { //One pass for the gold's pore sorting algorithm
-	if (!isSorted(gpObject.str)) {
+	if (!sorted(gpObject.str)) {
 		for (var i = gpObject.parity; i < gpObject.str.length; i += 2) {
 			if (i + 2 > gpObject.str.length) continue;
 			if (gpObject.str[i] > gpObject.str[i + 1]) {
@@ -139,7 +136,7 @@ function goldsPoreOnce(gpObject) { //One pass for the gold's pore sorting algori
 		gpObject.parity = (gpObject.parity + 1) % 2;
 	}
 	else {
-		gpObject.color = "white";
+		// gpObject.color = "white";
 	}
 }
 
@@ -148,7 +145,7 @@ function mergeSortOnce(msObject) { //One pass for the merge sort algorithm
 }
 
 function quickSortOnce(qsObject) { //One pass for the quick sort algorithm
-	if (qsObject.end >= 2 && !isSorted(qsObject.str)) {
+	if (qsObject.end >= 2 && !sorted(qsObject.str)) {
 		// Start after pivot, move onwards until (relative) end reached.
 		for (var i = qsObject.pivot + 1; i <= qsObject.end; i++) {
 			// If current value is <= pivot value, then swap it with the store index value and increment store index.
@@ -193,7 +190,7 @@ function quickSortOnce(qsObject) { //One pass for the quick sort algorithm
 		}
 	}
 	else {
-		qsObject.color = "white";
+		// qsObject.color = "white";
 	}
 }
 
@@ -201,13 +198,18 @@ function replaceChar(str, index, char) {
 	return str.substr(0,index) + char + str.substr(index+1);
 }
 
-function swap(obj, i, j) {
-	var oi = obj.str[i];
+function swap(obj, i, j) { //Swaps the characters at indices i and j
+	let oi = obj.str[i];
 	obj.str = replaceChar(obj.str, i, obj.str[j]);
 	obj.str = replaceChar(obj.str, j, oi);
 }
 
-function isSorted(str) { //Takes a string of hexidecimal characters and returns true if it is in sorted order (L to G)
+function rotateString(str, offset) { //Rotates a string so that the first characters moves to the back, rest move over.
+	offset %= str.length;
+	return str.substr(offset) + str.substr(0, offset);
+}
+
+function sorted(str) { //Takes a string of hexidecimal characters and returns true if it is in sorted order (L to G)
 	let sorted = true;
 	for (let i = 0; i < str.length - 1; ++i) {
 		if (parseInt(str[i], 16) > parseInt(str[i+1], 16)) {
@@ -218,17 +220,18 @@ function isSorted(str) { //Takes a string of hexidecimal characters and returns 
 	return sorted;
 }
 
-function drawString(algoObject) {
+function drawString(algoObject, overrideColor) {
 	// var currentColor = color(random(0, 255), random(0,255), random(0,255));
 	// Uncomment the following to display pass number
 	// let x = algoObject.col - 1.5;
 	// let y = (algoObject.lineNum % (g_canvas.hgt - 2)) + 2; //0 - 62
 	// drawCell(x, y, "#000", algoObject.lineNum, "#fff");
 	for (var i = 0; i < 16; ++i) {
+		let color = (typeof overrideColor === "undefined")? algoObject.color : overrideColor;
 		let x = algoObject.col + i;
 		let y = (algoObject.lineNum % (g_canvas.hgt - 2)) + 2; //0 - 62
 		// console.log("SS: " + x + " " + y);
-		drawCell(x, y, algoObject.color, algoObject.str[i], "#000");
+		drawCell(x, y, color, algoObject.str[i], "#000");
 	}
 	++algoObject.lineNum;
 }
