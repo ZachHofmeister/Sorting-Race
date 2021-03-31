@@ -18,7 +18,7 @@ var g_newStrColor = "white";
 
 var g_algoSS = {col:2, lineNum:0, color:"red", str:"", rotation:0, unsortedIndex:0}
 var g_algoGP = {col:20, lineNum:0, color:"yellow", str:"", rotation:0, parity:0}
-var g_algoMS = {col:38, lineNum:0, color:"green", str:"", rotation:0}
+var g_algoMS = {col:38, lineNum:0, color:"green", str:"", rotation:0, pIndex:0, partitions:[]}
 var g_algoQS = {col:56, lineNum:0, color:"blue", str:"", rotation:0, pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
 
 var width;
@@ -71,6 +71,8 @@ function startRace() {
 	g_algoMS.lineNum = 0;
 	g_algoMS.str = g_raceObj.currentStr;
 	g_algoMS.rotation = 0;
+	g_algoMS.pIndex = 0;
+	g_algoMS.partitions = [];
 
 	g_algoQS.lineNum = 0;
 	g_algoQS.str = g_raceObj.currentStr;
@@ -141,7 +143,55 @@ function goldsPoreOnce(gpObject) { //One pass for the gold's pore sorting algori
 }
 
 function mergeSortOnce(msObject) { //One pass for the merge sort algorithm
-	
+	if (!sorted(msObject.str)) {
+		if (msObject.partitions.length == 0) {
+			// Start off with single element partitions, then start merging and sorting per pass after this pass.
+			for (var i = 0; i < msObject.str.length; i++) {
+				msObject.partitions.push([msObject.str[i]]);
+			}
+		}
+		
+		var partS = ""; // To store (sorted) elements from left + right partitions into a single partition.
+		var part = [];
+		
+		for (var i = msObject.pIndex; i < msObject.partitions.length; i += 2) {
+			var mergeS = "";
+			var merge = [];
+			
+			if (i + 1 < msObject.partitions.length) {			
+				var lp = msObject.partitions[i]; // left partition
+				var rp = msObject.partitions[i + 1]; // right partition
+				
+				var a = 0;
+				var b = 0;
+				
+				while (a < lp.length && b < rp.length) {
+					if (lp[a] < rp[b])
+						{ merge.push(lp[a]); mergeS+=lp[a]; a++; }
+					else
+						{ merge.push(rp[b]); mergeS+=rp[b]; b++; }
+				}
+				
+				var r = a < lp.length ? a : b;
+				var rArr = a < lp.length ? lp : rp;
+				for (; r < rArr.length; r++) { merge.push(rArr[r]); mergeS+=rArr[r]; }
+				
+				msObject.pIndex += 2;
+			}
+			else {
+				// A partition left out w/o any other partition to merge with. Occurs when the array length is odd.
+				merge.push(msObject.partitions[i][0]);
+				mergeS += msObject.partitions[i];
+				msObject.pIndex++;
+			}
+			
+			part.push(merge);
+			partS += mergeS;
+		}
+		
+		msObject.partitions = msObject.partitions.concat(part);
+		msObject.str = partS;
+	}
 }
 
 function quickSortOnce(qsObject) { //One pass for the quick sort algorithm
