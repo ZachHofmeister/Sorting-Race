@@ -12,7 +12,7 @@ var g_frame_mod = 1; // Update every 'mod' frames.
 var g_stop = 0; // Go by default.
 
 var inputs = ["05CA62A7BC2B6F03","065DE66B71F040BA","0684FB89C3D5754E","07C9A2D18D3E4B65","09F48E7862ED2616","1FAB3D47905FC286","286E1AD0342D7859","30E530BC4786AF21","328DE47C65C10BA9","34F2756FD18E90BA","90BA34F07E56F180","D7859286E2FD0342"];
-var g_raceObj = {nextIndex:0, currentStr:"", racing:false}
+var g_raceObj = {index:0, currentStr:"", racing:false}
 
 var g_newStrColor = "white";
 
@@ -47,6 +47,7 @@ function startRace() {
 	//Reset display
 	background("#000"); // set canvas to black
 	let sz = g_canvas.cell_size;
+	textAlign(LEFT, CENTER);
 	textSize(sz);
 	fill("#FFF");
 	text("Selection Sort", g_canvas.cell_size * g_algoSS.col, 20);
@@ -54,8 +55,7 @@ function startRace() {
 	text("Mergesort", g_canvas.cell_size * g_algoMS.col, 20);
 	text("Quicksort", g_canvas.cell_size * g_algoQS.col, 20);
 	//Update raceObj
-	g_raceObj.currentStr = inputs[g_raceObj.nextIndex];
-	g_raceObj.nextIndex = (g_raceObj.nextIndex + 1) % inputs.length;
+	g_raceObj.currentStr = inputs[g_raceObj.index];
 	g_raceObj.racing = true;
 	//Reset algo objects
 	g_algoSS.lineNum = 0;
@@ -84,7 +84,7 @@ function startRace() {
 
 function raceManager() {
 	//Selection Sort
-	console.log(g_algoSS.rotation);
+	// console.log(g_algoSS.rotation);
 	if (sorted(g_algoSS.str)) { //End of the current lap
 		drawString(g_algoSS, color(random(0, 255), random(0,255), random(0,255)));
 		g_algoSS.str = rotateString(g_raceObj.currentStr, ++g_algoSS.rotation);
@@ -251,5 +251,21 @@ function drawCell(x, y, cellColor, char, charColor) {
 
 function keyPressed() {
 	// console.log(`keyPressed: ${keyCode}`);
-    if (keyCode == 32) g_stop = !g_stop; //Spacebar pause
+	switch(keyCode) {
+		case 32: //Spacebar
+			g_stop = !g_stop; //Pause
+			break;
+		case 37:{ //Left Arrow
+			let len = inputs.length;
+			g_raceObj.index = (((g_raceObj.index - 1) % len) + len) % len; //decrement race index
+			startRace();
+			break;
+		}
+		case 39: { //Right Arrow
+			let len = inputs.length;
+			g_raceObj.index = (((g_raceObj.index + 1) % len) + len) % len; //increment race index
+			startRace();
+			break;
+		}
+	}
 }
