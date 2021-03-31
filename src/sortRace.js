@@ -145,7 +145,7 @@ function mergeSortOnce(msObject) { //One pass for the merge sort algorithm
 }
 
 function quickSortOnce(qsObject) { //One pass for the quick sort algorithm
-	if (qsObject.end >= 2 && !sorted(qsObject.str)) {
+	if (qsObject.str.length > 1 && !sorted(qsObject.str)) {
 		// Start after pivot, move onwards until (relative) end reached.
 		for (var i = qsObject.pivot + 1; i <= qsObject.end; i++) {
 			// If current value is <= pivot value, then swap it with the store index value and increment store index.
@@ -161,9 +161,9 @@ function quickSortOnce(qsObject) { //One pass for the quick sort algorithm
 		qsObject.pivot = qsObject.sIndex - 1;
 		
 		// Get furthest left side of 1st partition (left of pivot).
-		var p1Left = (qsObject.pIndex == -1) ? qsObject.pivot : qsObject.partitions[qsObject.pIndex].start;
+		var p1Left = (qsObject.pIndex == -1) ? 0 : qsObject.partitions[qsObject.pIndex].start;
 		// Get furthest right side of 2nd partition (right of pivot).
-		var p2Right = (qsObject.pIndex == -1) ? qsObject.end : qsObject.partitions[qsObject.pIndex].end;
+		var p2Right = (qsObject.pIndex == -1) ? 15 : qsObject.partitions[qsObject.pIndex].end;
 		
 		if (p1Left <= qsObject.pivot - 1) {
 			// Create partition to left of pivot.
