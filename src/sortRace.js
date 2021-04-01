@@ -301,8 +301,7 @@ function drawString(algoObject, overrideColor) {
 		} else cellColor = overrideColor;
 
 		let x = algoObject.col + i;
-		let y = (algoObject.lineNum % (g_canvas.hgt - 2)) + 2; //0 - 62
-		// console.log("SS: " + x + " " + y);
+		let y = (algoObject.lineNum % (g_canvas.hgt - 2)) + 2; //2-48
 		drawCell(x, y, cellColor, algoObject.str[i], "#000");
 	}
 	++algoObject.lineNum;
