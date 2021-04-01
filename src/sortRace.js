@@ -17,9 +17,9 @@ var g_raceObj = {index:0, currentStr:"", racing:false}
 var g_newStrColor = "white";
 
 var g_algoSS = {col:2, lineNum:0, color:"red", str:"", rotation:0, unsortedIndex:0}
-var g_algoGP = {col:20, lineNum:0, color:"yellow", str:"", rotation:0, parity:0}
-var g_algoMS = {col:38, lineNum:0, color:"green", str:"", rotation:0, pIndex:0, partitions:[]}
-var g_algoQS = {col:56, lineNum:0, color:"blue", str:"", rotation:0, pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
+var g_algoGP = {col:20, lineNum:0, color:"gold", str:"", rotation:0, parity:0}
+var g_algoMS = {col:38, lineNum:0, color:"deepskyblue", str:"", rotation:0, pIndex:0, partitions:[]}
+var g_algoQS = {col:56, lineNum:0, color:"magenta", str:"", rotation:0, pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
 
 var width;
 var height;
@@ -86,9 +86,8 @@ function startRace() {
 
 function raceManager() {
 	//Selection Sort
-	// console.log(g_algoSS.rotation);
 	if (sorted(g_algoSS.str)) { //End of the current lap
-		drawString(g_algoSS, color(random(0, 255), random(0,255), random(0,255)));
+		drawString(g_algoSS, g_algoSS.color);
 		g_algoSS.str = rotateString(g_raceObj.currentStr, ++g_algoSS.rotation);
 		g_algoSS.unsortedIndex = 0;
 	} else if (g_algoSS.rotation < g_raceObj.currentStr.length) { //Not sorted, and race not ended
@@ -96,33 +95,51 @@ function raceManager() {
 		selecSortOnce(g_algoSS);
 	}
 	//Gold's Pore Sort
-	goldsPoreOnce(g_algoGP);
-	drawString(g_algoGP);
+	if (sorted(g_algoGP.str)) { //End of the current lap
+		drawString(g_algoGP, g_algoGP.color);
+		g_algoGP.str = rotateString(g_raceObj.currentStr, ++g_algoGP.rotation);
+		g_algoGP.parity = 0;
+	} else if (g_algoGP.rotation < g_raceObj.currentStr.length) { //Not sorted, and race not ended
+		drawString(g_algoGP);
+		goldsPoreOnce(g_algoGP);
+	}
 	//Merge Sort
-	mergeSortOnce(g_algoMS);
-	drawString(g_algoMS);
+	if (sorted(g_algoMS.str)) { //End of the current lap
+		drawString(g_algoMS, g_algoMS.color);
+		g_algoMS.str = rotateString(g_raceObj.currentStr, ++g_algoMS.rotation);
+		g_algoMS.pIndex = 0;
+		g_algoMS.partitions = [];
+	} else if (g_algoMS.rotation < g_raceObj.currentStr.length) { //Not sorted, and race not ended
+		drawString(g_algoMS);
+		mergeSortOnce(g_algoMS);
+	}
 	//Quick Sort
-	quickSortOnce(g_algoQS);
-	drawString(g_algoQS);
+	if (sorted(g_algoQS.str)) { //End of the current lap
+		drawString(g_algoQS, g_algoQS.color);
+		g_algoQS.str = rotateString(g_raceObj.currentStr, ++g_algoQS.rotation);
+		g_algoQS.pivot = 0;
+		g_algoQS.end = 15;
+		g_algoQS.sIndex = 1;
+		g_algoQS.pIndex = -1;
+		g_algoQS.partitions = [];
+	} else if (g_algoQS.rotation < g_raceObj.currentStr.length) { //Not sorted, and race not ended
+		drawString(g_algoQS);
+		quickSortOnce(g_algoQS);
+	}
 }
 
 function selecSortOnce(ssObject) { //One pass for the selection sort algorithm
-	if (!sorted(ssObject.str)) {
-		var min = ssObject.unsortedIndex; //min: index of the minimum unsorted element
+	var min = ssObject.unsortedIndex; //min: index of the minimum unsorted element
 
-		//find the minimum in the unsorted area
-		for (let i = min+1; i < 16; ++i) {
-			// console.log(ssObject.str[j], ssObject.str[min], parseInt(ssObject.str[j], 16) < parseInt(ssObject.str[min], 16));
-			if (parseInt(ssObject.str[i], 16) < parseInt(ssObject.str[min], 16)) {
-				min = i;
-			}
+	//find the minimum in the unsorted area
+	for (let i = min+1; i < 16; ++i) {
+		if (parseInt(ssObject.str[i], 16) < parseInt(ssObject.str[min], 16)) {
+			min = i;
 		}
-	
-		swap(ssObject, min, ssObject.unsortedIndex); //Swap minimum element with the first unsorted element
-		++ssObject.unsortedIndex; //Increment the index of first unsorted element. 
-	} else {
-		// ssObject.color = "white"; //temporary, white for sorted
 	}
+
+	swap(ssObject, min, ssObject.unsortedIndex); //Swap minimum element with the first unsorted element
+	++ssObject.unsortedIndex; //Increment the index of first unsorted element.
 }
 
 function goldsPoreOnce(gpObject) { //One pass for the gold's pore sorting algorithm
@@ -277,11 +294,16 @@ function drawString(algoObject, overrideColor) {
 	// let y = (algoObject.lineNum % (g_canvas.hgt - 2)) + 2; //0 - 62
 	// drawCell(x, y, "#000", algoObject.lineNum, "#fff");
 	for (var i = 0; i < 16; ++i) {
-		let color = (typeof overrideColor === "undefined")? algoObject.color : overrideColor;
+		var cellColor;
+		if (typeof overrideColor === "undefined") {
+			colorMode(HSB, 256, 256, 256);
+			cellColor = color(hue(algoObject.color), parseInt(algoObject.str[i], 16)*12, brightness(algoObject.color));
+		} else cellColor = overrideColor;
+
 		let x = algoObject.col + i;
 		let y = (algoObject.lineNum % (g_canvas.hgt - 2)) + 2; //0 - 62
 		// console.log("SS: " + x + " " + y);
-		drawCell(x, y, color, algoObject.str[i], "#000");
+		drawCell(x, y, cellColor, algoObject.str[i], "#000");
 	}
 	++algoObject.lineNum;
 }
