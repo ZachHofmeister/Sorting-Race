@@ -8,7 +8,7 @@
 
 var g_canvas = { cell_size:14, wid:74, hgt:48 }; // JS Global var, w canvas size info.
 var g_frame_cnt = 0; // Setup a P5 display-frame counter, to do anim
-var g_frame_mod = 1; // Update every 'mod' frames.
+var g_frame_mod = 8; // Update every 'mod' frames.
 var g_stop = 0; // Go by default.
 
 var inputs = ["05CA62A7BC2B6F03","065DE66B71F040BA","0684FB89C3D5754E","07C9A2D18D3E4B65","09F48E7862ED2616","1FAB3D47905FC286","286E1AD0342D7859","30E530BC4786AF21","328DE47C65C10BA9","34F2756FD18E90BA","90BA34F07E56F180","D7859286E2FD0342"];
@@ -16,10 +16,10 @@ var g_raceObj = {index:0, currentStr:"", racing:false}
 
 var g_newStrColor = "white";
 
-var g_algoSS = {col:2, lineNum:0, color:"red", str:"", rotation:0, unsortedIndex:0}
-var g_algoGP = {col:20, lineNum:0, color:"gold", str:"", rotation:0, parity:0}
-var g_algoMS = {col:38, lineNum:0, color:"deepskyblue", str:"", rotation:0, pIndex:0, partitions:[]}
-var g_algoQS = {col:56, lineNum:0, color:"magenta", str:"", rotation:0, pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
+var g_algoSS = {col:2, lineNum:0, color:"red", str:"", rotation:0, passes:0, unsortedIndex:0}
+var g_algoGP = {col:20, lineNum:0, color:"gold", str:"", rotation:0, passes:0, parity:0}
+var g_algoMS = {col:38, lineNum:0, color:"deepskyblue", str:"", rotation:0, passes:0, pIndex:0, partitions:[]}
+var g_algoQS = {col:56, lineNum:0, color:"magenta", str:"", rotation:0, passes:0, pivot:0, end:15, sIndex:1, pIndex:-1, partitions:[]}
 
 var width;
 var height;
@@ -34,10 +34,6 @@ function setup() { // P5 setup function
 
 function draw() { // P5 frame re-draw function, called for every frame.	
     ++g_frame_cnt;
-	// //The following two lines give output similar to the first 30 moves example txt. MAKE SURE iterations and g_frame_mod both = 1
-	// // let tempState = get_state(g_bot.x, g_bot.y);
-	// // console.log(` #${g_frame_cnt} {p=${g_bot.x},${g_bot.y} d=${g_bot.dir} m=${g_bot.mode} i=${g_bot.counter}}; {c=${tempState[0]} t=${tempState[1]}}`);
-
     if (0 == g_frame_cnt % g_frame_mod) {
         if (!g_stop && g_raceObj.racing) raceManager();
     }
@@ -57,26 +53,32 @@ function startRace() {
 	//Update raceObj
 	g_raceObj.currentStr = inputs[g_raceObj.index];
 	g_raceObj.racing = true;
+	//Write string to HTML
+	document.getElementById("sortingString").innerHTML = g_raceObj.currentStr;
 	//Reset algo objects
 	g_algoSS.lineNum = 0;
 	g_algoSS.str = g_raceObj.currentStr;
 	g_algoSS.rotation = 0;
+	g_algoSS.passes = 0;
 	g_algoSS.unsortedIndex = 0;
 
 	g_algoGP.lineNum = 0;
 	g_algoGP.str = g_raceObj.currentStr;
 	g_algoGP.rotation = 0;
+	g_algoGP.passes = 0;
 	g_algoGP.parity = 0;
 
 	g_algoMS.lineNum = 0;
 	g_algoMS.str = g_raceObj.currentStr;
 	g_algoMS.rotation = 0;
+	g_algoMS.passes = 0;
 	g_algoMS.pIndex = 0;
 	g_algoMS.partitions = [];
 
 	g_algoQS.lineNum = 0;
 	g_algoQS.str = g_raceObj.currentStr;
 	g_algoQS.rotation = 0;
+	g_algoQS.passes = 0;
 	g_algoQS.pivot = 0;
 	g_algoQS.end = 15;
 	g_algoQS.sIndex = 1;
@@ -92,6 +94,7 @@ function raceManager() {
 		g_algoSS.unsortedIndex = 0;
 	} else if (g_algoSS.rotation < g_raceObj.currentStr.length) { //Not sorted, and race not ended
 		drawString(g_algoSS);
+		drawIterationNum(g_algoSS);
 		selecSortOnce(g_algoSS);
 	}
 	//Gold's Pore Sort
@@ -101,6 +104,7 @@ function raceManager() {
 		g_algoGP.parity = 0;
 	} else if (g_algoGP.rotation < g_raceObj.currentStr.length) { //Not sorted, and race not ended
 		drawString(g_algoGP);
+		drawIterationNum(g_algoGP);
 		goldsPoreOnce(g_algoGP);
 	}
 	//Merge Sort
@@ -111,6 +115,7 @@ function raceManager() {
 		g_algoMS.partitions = [];
 	} else if (g_algoMS.rotation < g_raceObj.currentStr.length) { //Not sorted, and race not ended
 		drawString(g_algoMS);
+		drawIterationNum(g_algoMS);
 		mergeSortOnce(g_algoMS);
 	}
 	//Quick Sort
@@ -124,6 +129,7 @@ function raceManager() {
 		g_algoQS.partitions = [];
 	} else if (g_algoQS.rotation < g_raceObj.currentStr.length) { //Not sorted, and race not ended
 		drawString(g_algoQS);
+		drawIterationNum(g_algoQS);
 		quickSortOnce(g_algoQS);
 	}
 }
@@ -140,6 +146,7 @@ function selecSortOnce(ssObject) { //One pass for the selection sort algorithm
 
 	swap(ssObject, min, ssObject.unsortedIndex); //Swap minimum element with the first unsorted element
 	++ssObject.unsortedIndex; //Increment the index of first unsorted element.
+	++ssObject.passes;
 }
 
 function goldsPoreOnce(gpObject) { //One pass for the gold's pore sorting algorithm
@@ -154,9 +161,7 @@ function goldsPoreOnce(gpObject) { //One pass for the gold's pore sorting algori
 		// Set the next half-pass to be even (0) or odd (1).
 		gpObject.parity = (gpObject.parity + 1) % 2;
 	}
-	else {
-		// gpObject.color = "white";
-	}
+	++gpObject.passes;
 }
 
 function mergeSortOnce(msObject) { //One pass for the merge sort algorithm
@@ -209,6 +214,7 @@ function mergeSortOnce(msObject) { //One pass for the merge sort algorithm
 		msObject.partitions = msObject.partitions.concat(part);
 		msObject.str = partS;
 	}
+	++msObject.passes;
 }
 
 function quickSortOnce(qsObject) { //One pass for the quick sort algorithm
@@ -256,9 +262,7 @@ function quickSortOnce(qsObject) { //One pass for the quick sort algorithm
 			qsObject.sIndex = qsObject.pivot + 1; // Store index is the value after the pivot.
 		}
 	}
-	else {
-		// qsObject.color = "white";
-	}
+	++qsObject.passes;
 }
 
 function replaceChar(str, index, char) {
@@ -293,16 +297,17 @@ function drawString(algoObject, overrideColor) {
 	// let x = algoObject.col - 1.5;
 	// let y = (algoObject.lineNum % (g_canvas.hgt - 2)) + 2; //0 - 62
 	// drawCell(x, y, "#000", algoObject.lineNum, "#fff");
+	colorMode(HSB, 256, 256, 256);
 	for (var i = 0; i < 16; ++i) {
 		var cellColor;
-		if (typeof overrideColor === "undefined") {
-			colorMode(HSB, 256, 256, 256);
+		if (typeof overrideColor === "undefined")
 			cellColor = color(hue(algoObject.color), parseInt(algoObject.str[i], 16)*12, brightness(algoObject.color));
-		} else cellColor = overrideColor;
+		else cellColor = overrideColor;
 
 		let x = algoObject.col + i;
 		let y = (algoObject.lineNum % (g_canvas.hgt - 2)) + 2; //2-48
-		drawCell(x, y, cellColor, algoObject.str[i], "#000");
+		drawCell(x, y, cellColor, algoObject.str[i], "black");
+		drawCell(x, y+1, "black", "", "black"); //Black-out the next line, for easier wrap-around visibility
 	}
 	++algoObject.lineNum;
 }
@@ -318,6 +323,15 @@ function drawCell(x, y, cellColor, char, charColor) {
 	textAlign(CENTER, CENTER);
 	fill(charColor);
 	text(char, rectX + (sz / 2), rectY + (sz / 2) + 2);
+}
+
+function drawIterationNum(algoObject) {
+	let sz = g_canvas.cell_size;
+	fill("black");
+	rect(sz * (algoObject.col + 12), 0, 4*sz, 2*sz);
+	textAlign(RIGHT, CENTER);
+	fill("white");
+	text(algoObject.passes, sz * (algoObject.col + 16), 20);
 }
 
 function keyPressed() {
