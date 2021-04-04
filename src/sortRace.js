@@ -138,7 +138,7 @@ function selecSortOnce(ssObject) { //One pass for the selection sort algorithm
 	var min = ssObject.unsortedIndex; //min: index of the minimum unsorted element
 
 	//find the minimum in the unsorted area
-	for (let i = min+1; i < 16; ++i) {
+	for (let i = min+1; i < ssObject.str.length; ++i) {
 		if (parseInt(ssObject.str[i], 16) < parseInt(ssObject.str[min], 16)) {
 			min = i;
 		}
